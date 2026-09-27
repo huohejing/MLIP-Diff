@@ -13,17 +13,42 @@ Archived release: [10.5281/zenodo.22975994](https://doi.org/10.5281/zenodo.22975
 
 ## Repository Structure
 
-| Path | Contents |
-|:---|:---|
-| `models/` | DiffGui backbone and the physical guidance module |
-| `models/physical_guidance.py` | proxy reconstruction, MACE forces, force decomposition |
-| `models/model.py` | the guidance flow and the two mode branches |
-| `utils/` | DiffGui utilities (dataset, transforms, reconstruction, metrics) |
-| `configs/sample/` | sampling configurations |
-| `scripts/` | `sample.py` (guided sampling) and `prepare_target_mace.py` (target preparation) |
-| `sample/` | pocket structures for the eight benchmark systems |
-| `demo/` | 3ctj protein and reference ligand, used by the demo below |
-| `figures/` | framework diagram |
+```
+MLIP-Diff/
+├── models/                          # DiffGui backbone and the physical guidance module
+│   ├── model.py                     # the guidance flow and the two mode branches
+│   ├── physical_guidance.py         # proxy reconstruction, MACE forces, force decomposition
+│   ├── diffusion.py                 # reverse-diffusion process
+│   ├── transition.py                # discrete atom and bond transition kernels
+│   ├── egnn.py                      # E(3)-equivariant backbone
+│   ├── bond_predictor.py            # bond-type predictor
+│   └── common.py                    # shared layers
+├── utils/                           # DiffGui utilities
+│   ├── paths.py                     # repo-root-relative path resolution
+│   ├── dataset.py  data.py          # data loading and featurisation
+│   ├── transforms.py                # atom and bond featurisation
+│   ├── reconstruct.py  edm_bond.py  # coordinate and bond reconstruction
+│   ├── sample_utils.py              # guided-sampling helpers
+│   ├── train_utils.py  warmup.py    # training helpers and LR warmup
+│   ├── misc.py  parser.py           # logging and config parsing
+│   ├── visualize.py                 # trajectory and structure plotting
+│   └── diffgui_metrics/             # validity, uniqueness, SA and QED scoring
+├── configs/sample/                  # sampling configurations
+│   ├── sample.yml                   # the reported settings, demo target, 200 molecules
+│   ├── smoke_test.yml               # one molecule, the quickest way to check an installation
+│   └── sample_baseline.yml          # the unguided baseline
+├── scripts/
+│   ├── sample.py                    # guided sampling entry point
+│   └── prepare_target_mace.py       # pocket preparation for both uses
+├── sample/                          # pocket structures for the eight benchmark systems
+├── demo/                            # 3ctj protein and reference ligand, used by the demo below
+├── figures/framework.svg            # framework diagram
+├── ckpt/                            # not included: place the DiffGui checkpoints here
+├── env.yml                          # conda environment
+├── LICENSE                          # MIT, retained from DiffGui
+├── NOTICE                           # list of modifications made in this repository
+└── run.sh
+```
 
 ## Create the Conda Environment
 ```
@@ -227,11 +252,10 @@ original copyright notice is retained in `LICENSE`.
 ## Citation
 ```
 @article{
-  title={Interaction-Aware Physical Guidance for Diffusion-Based 3D Ligand
-         Generation With Machine-Learning Interatomic Potentials},
+  title={Interaction-Aware Physical Guidance for Diffusion-Based 3D Ligand Generation With Machine-Learning Interatomic Potentials},
   author={Hejing Huo, Jinfeng Liu},
-  journal={},
-  year={},
+  journal={Under submission},
+  year={2026},
   url={https://github.com/huohejing/MLIP-Diff}
 }
 ```
