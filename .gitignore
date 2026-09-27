@@ -1,0 +1,36 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+*:Zone.Identifier
+*:Zone.Identifier:Zone.Identifier
+
+# ---- DiffGui 运行产物 ----
+ckpt/
+logs_*/
+outputs/
+outputs_vscode/
+eval_results/
+validation/
+tmp/
+backups/
+
+# ---- 大文件 / 二进制（一律不进仓库）----
+*.whl
+*.tar.gz
+*.zip
+*.pt
+*.pth
+*.lmdb
+*.npz
+
+# ---- 环境 / 密钥 ----
+.env
+*.key
+smoke_logs/

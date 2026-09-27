@@ -1,0 +1,88 @@
+# Reference sampling configuration for guided generation.
+#
+# These are the settings used for the reported results. Note in particular:
+#
+#   mode: mace_only + complex_force
+#       The guidance force is the interaction-aware decomposition
+#       F_complex - F_ligand, applied as a direction whose magnitude is set
+#       by the current diffusion step's coordinate update. This is the
+#       formulation described in the manuscript.
+#
+#   lambda_lig: 0.0, lambda_pocket: 0.0
+#       The interaction component carries the signal. Non-zero values switch
+#       to the older mixed-force behaviour and change the results.
+#
+#   start_step: 25, interval: 1
+#       Guidance acts on each of the last 25 denoising steps.
+#
+#   readiness: true
+#       Enables the chemistry-aware proxy reconstruction (Sec. 2.5). Without
+#       it the loader falls back to the legacy path, which does not build a
+#       proxy and hard-codes the proxy confidence to 1.0 — guidance still runs,
+#       but it is not the method described in the paper.
+#
+#   pocket_pdb must be the HYDROGENATED pocket: MACE needs polar hydrogens to
+#   get hydrogen-bond geometry right. model.target takes the non-hydrogenated
+#   one. The two files serve different roles; see scripts/prepare_target_mace.py.
+#
+#   The AMBER guidance mode no longer exists — model.py skips guidance for any
+#   mode other than mace_only, silently. A config carrying lambda_mace /
+#   lambda_amber / protein_params does nothing.
+
+model:
+  checkpoint: ckpt/trained.pt
+  target: sample/3ctj_pocket.pdb
+  ligand: "None"
+  frag: "None"
+  gen_mode: denovo
+  logp: 2.0
+  tpsa: 100
+  sa: 1.0
+  qed: 0.8
+  aff: 12.0
+
+bond_predictor: ckpt/bond_trained.pt
+
+data:
+  name: protein_ligand
+  path: data/PDBbind_v2020_pocket10
+  split: data/PDBbind_pocket10_split.pt
+  protein_root: data/PDBbind_v2020
+  dataset: pdbbind
+  transform:
+    ligand_atom_mode: aromatic
+    random_rot: false
+    sample: false
+
+sample:
+  seed: 777
+  batch_size: 1
+  num_mols: 200
+  save_traj_prob: 0.0
+  sample: true
+  sample_method: priori
+  mode: pocket
+  test_id: 0
+  add_edge: "None"
+  gui_strength: 3.0
+  guidance: ["uncertainty", 0.0001]
+
+  physical_guidance:
+    enabled: true
+    mode: mace_only
+    complex_force: true
+    dir_scale: 4.0
+    tanh_c: 3.0
+    w_max: 3.0
+    quantile: 0.90
+    start_step: 25
+    interval: 1
+    readiness: true
+    mace_device: cuda
+    # Not tilde-expanded by the loader — use an absolute path, or export
+    # MLIPDIFF_MACE_MODEL and omit this line.
+    mace_model_path: ~/.cache/mace/MACE-OFF24_medium.model
+    overall_scale: 0.1
+    lambda_lig: 0.0
+    lambda_pocket: 0.0
+    pocket_pdb: sample/3ctj_pocket_h.pdb

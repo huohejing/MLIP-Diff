@@ -1,0 +1,56 @@
+NOTICE
+======
+
+This repository is a modified version of DiffGui.
+
+Original project
+----------------
+  DiffGui — https://github.com/QiaoyuHu89/DiffGui
+  Copyright (c) 2024 Qiaoyu Hu
+  Licensed under the MIT License (see LICENSE)
+
+The MIT License requires that the original copyright notice be retained.
+It is retained in LICENSE, and this NOTICE records what was changed.
+
+Modifications in this repository
+--------------------------------
+  models/physical_guidance.py            NEW — inference-time physical guidance
+                                         module (MACE-OFF24 atomic forces +
+                                         PyTorch ligand-protein interaction
+                                         energy gradient)
+
+  models/model.py                        MODIFIED — guidance hooks in the
+                                         reverse-diffusion loop
+  scripts/sample.py                      MODIFIED — guided sampling entry point
+  scripts/evaluate.py                    MODIFIED — evaluation additions
+  configs/sample/sample.yml              MODIFIED — guidance configuration
+  utils/data.py, utils/parser.py,
+  utils/evaluation/eval_atom_type.py     MODIFIED — minor support changes
+
+  utils/paths.py                         NEW — central path resolution.
+                                         All base directories are resolved
+                                         relative to the repository root and
+                                         can be overridden by environment
+                                         variables (see the module docstring).
+
+  scripts/*, configs/*                   MODIFIED — hardcoded absolute paths
+                                         from the original working environment
+                                         replaced with utils.paths lookups or
+                                         repository-relative paths, so a fresh
+                                         clone runs without editing any file.
+
+  check_diffgui_deps.py                  FIXED — two string literals broken
+                                         across lines by an upstream typo made
+                                         the file fail to parse. Corrected.
+
+  scripts/*                              Analysis and evaluation scripts
+                                         written for the accompanying
+                                         manuscript
+  data/*                                 Generated ligand conformations and
+                                         evaluation results (see README)
+
+Not redistributed here (obtain from the original sources)
+---------------------------------------------------------
+  - DiffGui pretrained model weights
+  - MACE-OFF24 machine-learning interatomic potential
+  - PDBbind benchmark structures
