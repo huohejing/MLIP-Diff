@@ -13,9 +13,7 @@ not have to edit any script.
     MLIPDIFF_DATA        shipped results            (default: <root>/data)
     MLIPDIFF_VALIDATION  raw sampling outputs       (default: <root>/validation)
     MLIPDIFF_WORK        scratch / intermediates    (default: <root>/work)
-    MLIPDIFF_MMGBSA      MM-GBSA working directory  (default: <work>/mmgbsa)
     MLIPDIFF_MACE_MODEL  MACE-OFF24 checkpoint      (default: ~/.cache/mace/...)
-    MLIPDIFF_PROTEIN_PARAMS  precomputed AMBER protein parameters (.npz)
 """
 
 import os
@@ -28,7 +26,6 @@ ROOT = os.environ.get('MLIPDIFF_ROOT', _DEFAULT_ROOT)
 DATA = os.environ.get('MLIPDIFF_DATA', os.path.join(ROOT, 'data'))
 VALIDATION = os.environ.get('MLIPDIFF_VALIDATION', os.path.join(ROOT, 'validation'))
 WORK = os.environ.get('MLIPDIFF_WORK', os.path.join(ROOT, 'work'))
-MMGBSA = os.environ.get('MLIPDIFF_MMGBSA', os.path.join(WORK, 'mmgbsa'))
 
 # Convenience aliases used by the analysis scripts
 EVAL_RESULTS = os.path.join(WORK, 'eval_results')
@@ -39,8 +36,6 @@ MACE_MODEL = os.environ.get(
     os.path.expanduser('~/.cache/mace/MACE-OFF24_medium.model'),
 )
 
-# Only needed for the legacy AMBER guidance path (physical_guidance mode='amber').
-PROTEIN_PARAMS = os.environ.get('MLIPDIFF_PROTEIN_PARAMS', '')
 
 
 def ensure(*dirs):
