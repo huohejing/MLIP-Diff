@@ -150,9 +150,6 @@ python scripts/sample.py --outdir ./outputs \
     --config ./configs/sample/sample.yml --device cuda:0
 ```
 
-Roughly 4 minutes per molecule on an A100, so a 200-molecule run takes most of a
-day.
-
 ## Configuration Reference
 All keys live under `sample.physical_guidance` in the YAML.
 
