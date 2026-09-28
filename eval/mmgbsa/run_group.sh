@@ -2,11 +2,11 @@
 # 单帧 MM-GBSA 管线 — Step C: 批量编排（nice 降优先级，-P 8 并行）
 # 用法: bash run_group.sh <target> <group> <sdf_dir>
 # 汇总: results/<target>/<group>_mmgbsa.csv
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 set -u
 
 TARGET=$1; GROUP=$2; SDF_DIR=$3
-ROOT=${MLIPDIFF_MMGBSA:-$REPO_ROOT}
+ROOT=${MLIPDIFF_MMGBSA:-$HOME/mmgbsa}
 RES=$ROOT/results/$TARGET/$GROUP
 mkdir -p $RES
 
@@ -17,7 +17,7 @@ N=$(wc -l < /tmp/mmgbsa_${TARGET}_${GROUP}.txt)
 echo "[$TARGET/$GROUP] 共 $N 个分子, -P 8 + nice 并行"
 
 cat /tmp/mmgbsa_${TARGET}_${GROUP}.txt | \
-    xargs -P 8 -I{} nice -n 10 bash $ROOT/scripts/score_mol.sh $TARGET $GROUP {}
+    xargs -P 8 -I{} nice -n 10 bash $SCRIPT_DIR/score_mol.sh $TARGET $GROUP {}
 
 # 汇总（只从 *.txt 行文件聚合，可重复执行）
 {

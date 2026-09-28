@@ -4,20 +4,20 @@
 # 输出: prep/<target>/protein_noh.pdb, rec.prmtop, rec.inpcrd, gap_report.txt
 #
 # 流程: pdb4amber 预处理 → 二硫键检测补 CONECT → 缺口检查(报告不阻断) → tleap 建受体拓扑
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 set -u
 export AMBERHOME=$HOME/soft/amber20
 export PATH=$AMBERHOME/bin:$PATH
 
 TARGET=$1
-ROOT=${MLIPDIFF_MMGBSA:-$REPO_ROOT}
+ROOT=${MLIPDIFF_MMGBSA:-$HOME/mmgbsa}
 SRC=$ROOT/proteins/${TARGET}_protein.pdb
 OUT=$ROOT/prep/$TARGET
 mkdir -p $OUT
 cd $OUT || exit 1
 
 echo "== [$TARGET] 蛋白清洗 (clean_protein.py 替代损坏的 pdb4amber) =="
-python3 $ROOT/scripts/clean_protein.py $SRC protein_noh.pdb > clean.log 2>&1
+python3 $SCRIPT_DIR/clean_protein.py $SRC protein_noh.pdb > clean.log 2>&1
 if [ $? -ne 0 ]; then echo "FAILED: clean_protein"; cat clean.log; exit 1; fi
 cat clean.log
 

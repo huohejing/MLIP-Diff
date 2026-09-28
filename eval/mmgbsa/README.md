@@ -38,12 +38,12 @@ estimated binding energy than its unguided partner of the same canonical SMILES.
 
 ## Directory Layout
 
-Every path is relative to a single root, `$MMGBSA_ROOT`, which defaults to the
-parent directory of `scripts/`. Override it with `MLIPDIFF_MMGBSA`.
+The five scripts in this folder are read-only. Everything they write goes to a
+separate **run root**, `$MMGBSA_ROOT`, which defaults to `~/mmgbsa` and can be
+redirected with `MLIPDIFF_MMGBSA`.
 
 ```
-$MMGBSA_ROOT/
-├── scripts/                      these five scripts
+$MMGBSA_ROOT/                     (default: ~/mmgbsa)
 ├── proteins/
 │   └── {target}_protein.pdb      INPUT — whole receptor, one per target
 ├── prep/{target}/                prep_protein.sh output
@@ -57,23 +57,31 @@ $MMGBSA_ROOT/
     └── {group}_mmgbsa.csv        aggregated over the group
 ```
 
+`MLIPDIFF_MMGBSA` is read by all three steps, so set it before the first
+`prep_protein.sh` run and keep it pointing at the same place.
+
+Each script locates its siblings relative to its own path, so the five files must
+stay in the same folder and can be invoked from anywhere.
+
 Ligand SDFs are read from any directory you point `run_group.sh` at, one file per
 molecule.
 
 ## Usage
 
+The commands below are written from the repository root.
+
 ```
-export MLIPDIFF_MMGBSA=/path/to/mmgbsa       # optional, defaults to scripts/..
+export MLIPDIFF_MMGBSA=~/mmgbsa              # optional, this is the default
 export MLIPDIFF_PYTHON=/usr/bin/python3      # optional, a python with RDKit
 
 # Step A — once per target
-bash scripts/prep_protein.sh <target>
+bash eval/mmgbsa/prep_protein.sh <target>
 
 # Step B — one molecule
-bash scripts/score_mol.sh <target> <group> <molecule.sdf>
+bash eval/mmgbsa/score_mol.sh <target> <group> <molecule.sdf>
 
 # Step C — a whole group, 8 molecules in parallel at nice 10
-bash scripts/run_group.sh <target> <group> <sdf_dir>
+bash eval/mmgbsa/run_group.sh <target> <group> <sdf_dir>
 ```
 
 All three steps are re-runnable: results are written per molecule, and the group
@@ -144,7 +152,7 @@ excluded molecule remains accounted for.
   pose against the whole-receptor topology:
 
   ```
-  python3 scripts/check_pocket_align.py <pocket.pdb> <receptor.pdb> [tolerance_A]
+  python3 eval/mmgbsa/check_pocket_align.py <pocket.pdb> <receptor.pdb> [tolerance_A]
   ```
 
   It passes when at least 99 % of pocket atoms are present in the receptor and

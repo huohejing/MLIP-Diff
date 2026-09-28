@@ -2,14 +2,14 @@
 # 单帧 MM-GBSA 管线 — Step B: 单分子打分（无 minimization、无 MD）
 # 用法: bash score_mol.sh <target> <group> <sdf_path>
 # 输出: results/<target>/<group>/<mol_id>.txt 一行结果 (status,vdw,eel,egb,esurf,total)
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 set -u
 export AMBERHOME=$HOME/soft/amber20
 export PATH=$AMBERHOME/bin:$PATH
 
 TARGET=$1; GROUP=$2; SDF=$(readlink -f $3)
 MOLID=$(basename $SDF .sdf)
-ROOT=${MLIPDIFF_MMGBSA:-$REPO_ROOT}
+ROOT=${MLIPDIFF_MMGBSA:-$HOME/mmgbsa}
 W=$ROOT/work/$TARGET/$GROUP/$MOLID
 RES=$ROOT/results/$TARGET/$GROUP
 mkdir -p $W $RES
