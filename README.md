@@ -40,6 +40,8 @@ MLIP-Diff/
 ├── scripts/
 │   ├── sample.py                    # guided sampling entry point
 │   └── prepare_target_mace.py       # pocket preparation for both uses
+├── eval/
+│   └── mmgbsa/                      # single-frame MM/GBSA scoring pipeline
 ├── sample/                          # pocket structures for the eight benchmark systems
 ├── demo/                            # 3ctj protein and reference ligand, used by the demo below
 ├── figures/framework.svg            # framework diagram
