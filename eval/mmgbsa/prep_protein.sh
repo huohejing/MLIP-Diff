@@ -63,12 +63,14 @@ for line in open('$SRC'):
             if r: seqres[chain].append(r)
     elif line.startswith(('ATOM','HETATM')):
         atoms[line[21]].add(line[22:27].strip())
-for ch in seqres:
-    expected = [f'{ch}:{i+1}' for i in range(len(seqres[ch]))]
+for ch in sorted(seqres):
     missing = [(f'{ch}:{i+1}', seqres[ch][i]) for i in range(len(seqres[ch]))
                if str(i+1) not in atoms[ch]]
     if missing:
-        print(f'chain {ch}: 缺 {len(missing)}/{len(seqres[ch])} 残基: {missing[:8]}{" ..." if len(missing)>8 else ""}')
+        print(f'chain {ch}: SEQRES 列了 {len(seqres[ch])} 个残基, 其中 {len(missing)} 个的 1-based 序号未出现在 ATOM 记录中')
+        print(f'          前几个: {missing[:8]}{" ..." if len(missing)>8 else ""}')
+        print('          注: 本检查按「SEQRES 的第 i 个残基 vs resSeq == i+1」比对, 即假设残基编号从 1 开始.')
+        print('              编号有偏移的 PDB (如从 1001 起) 会整体误报, 不代表残基真的缺失.')
     else:
         print(f'chain {ch}: 完整 ({len(seqres[ch])} 残基)')
 PY

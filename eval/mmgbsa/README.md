@@ -95,7 +95,8 @@ CSV is rebuilt from the individual `.txt` rows.
 2. Disulfide bonds are detected by SG–SG distance < 2.5 Å and `CONECT` records
    are rebuilt from scratch.
 3. Sequence gaps are reported to `gap_report.txt`. The report is informational
-   and does not abort the run.
+   and does not abort the run — and it assumes 1-based residue numbering, see
+   Notes.
 4. `tleap` builds the receptor topology under ff19SB with mbondi2 radii.
 
 `score_mol.sh` (Step B):
@@ -135,6 +136,13 @@ excluded molecule remains accounted for.
   resolves altlocs by highest occupancy, strips hydrogens so tleap rebuilds them
   from ff19SB templates, drops `TER` cards, rebuilds disulfide `CONECT` records,
   and maps MSE to MET.
+- **The gap report assumes 1-based residue numbering.** `prep_protein.sh`
+  compares the *i*-th residue listed in `SEQRES` against `resSeq == i + 1` in
+  the `ATOM` records. A receptor whose numbering starts at, say, 1001 therefore
+  reports every residue as unaccounted for, even though nothing is missing.
+  Receptors numbered from 1 — the usual case for a PDB entry downloaded
+  directly — are reported correctly. The check never aborts the run, so a
+  surprising report can be ignored; it is a diagnostic, not a gate.
 - **The receptor must be loaded with `loadpdb`, not `loadoff`.** `saveoff` /
   `loadoff` do not carry coordinates, so a receptor restored that way loses its
   position relative to the ligand and the complex is meaningless.
