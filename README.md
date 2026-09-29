@@ -44,7 +44,9 @@ MLIP-Diff/
 │   ├── mmgbsa/                      # single-frame MM/GBSA scoring
 │   ├── pbr/                         # PoseBusters plausibility scoring
 │   ├── vina/                        # Vina score_only and the crystal-ligand baseline
-│   └── prolif/                      # protein-ligand interaction counts
+│   ├── prolif/                      # protein-ligand interaction counts
+│   ├── mace/                        # MACE interaction energy
+│   └── strain/                      # conformational strain from MACE relaxation
 ├── sample/                          # pocket structures for the eight benchmark systems
 ├── demo/                            # 3ctj protein and reference ligand, used by the demo below
 ├── figures/framework.svg            # framework diagram
