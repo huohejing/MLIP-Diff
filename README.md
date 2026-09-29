@@ -41,7 +41,9 @@ MLIP-Diff/
 │   ├── sample.py                    # guided sampling entry point
 │   └── prepare_target_mace.py       # pocket preparation for both uses
 ├── eval/
-│   └── mmgbsa/                      # single-frame MM/GBSA scoring pipeline
+│   ├── mmgbsa/                      # single-frame MM/GBSA scoring
+│   ├── pbr/                         # PoseBusters plausibility scoring
+│   └── vina/                        # Vina score_only and the crystal-ligand baseline
 ├── sample/                          # pocket structures for the eight benchmark systems
 ├── demo/                            # 3ctj protein and reference ligand, used by the demo below
 ├── figures/framework.svg            # framework diagram

@@ -7,27 +7,12 @@ conformation.
 
 **PBR** is the fraction of molecules passing every check.
 
-## Two steps
-
-| Step | Script | Does |
-|:---|:---|:---|
-| 1 | `results8_pbr.py` | runs PoseBusters, writes one row per molecule |
-| 2 | `build_pbr_paired.py` | pairs by SMILES, applies the water convention, computes gain/loss and McNemar |
-
-The split matters. Step 1 records **all 22 checks, water included**: `pbr_pass`
-is "all 22 passed" and `failed_checks` lists every failure. Step 2 is where
-water is excluded — because it produces *both* the `nowater` and `full`
-conventions from the same input. If step 1 filtered water out early, the `full`
-convention could never be computed.
-
 ## Environment
 
-Step 1 runs in the **`pb`** environment (PoseBusters 0.6.5). It needs a recent
-RDKit — the shared `diffgui_cpu` environment has RDKit 2022.09, which lacks the
-`GetProp(autoConvert)` argument PoseBusters 0.6.5 calls, and crashes.
-
-Step 2 needs RDKit only, and imports the shared pairing helper from
-`../eval_utils.py`.
+Run in the **`pb`** environment (PoseBusters 0.6.5). It needs a recent RDKit —
+the shared `diffgui_cpu` environment has RDKit 2022.09, which lacks the
+`GetProp(autoConvert)` argument PoseBusters 0.6.5 calls, and crashes. That is
+the only reason this step has its own environment.
 
 ```
 conda activate pb
@@ -36,13 +21,8 @@ conda activate pb
 ## Usage
 
 ```
-# Step 1 — per target, over the named variants
 python eval/pbr/results8_pbr.py --target 3ctj --variants base total split \
     --results-root /path/to/results8
-
-# Step 2 — all targets at once
-python eval/pbr/build_pbr_paired.py \
-    --results-root /path/to/results8 --out-dir /path/to/out
 ```
 
 Expected layout:
@@ -51,56 +31,48 @@ Expected layout:
 {results_root}/
 ├── {target}/native/{target}_protein.pdb    whole receptor — the clash checks need all of it
 ├── {target}/base/*.sdf                     unguided molecules
-├── {target}/{total,split}/*.sdf            guided molecules
-└── {target}/eval/                          ← step 1 output, step 2 output
+└── {target}/{total,split}/*.sdf            guided molecules
 ```
 
-`results_root` defaults to `$MLIPDIFF_RESULTS8`, then to `./results8`.
+`--results-root` defaults to `$MLIPDIFF_RESULTS8`, then to `./results8`.
+`--max-mols N` scores only the first N molecules per variant, for a quick check
+of an installation.
 
 ## Output
 
-**Step 1** — `{target}/eval/{target}_{variant}_pbr.csv`
+`{results_root}/{target}/eval/{target}_{variant}_pbr.csv`, one row per molecule:
 
 | Column | |
 |:---|:---|
 | `file` | molecule file name |
 | `pbr_pass` | all 22 checks passed |
-| `failed_checks` | `;`-joined names of every failed check, water included |
+| `failed_checks` | `;`-joined names of every failed check |
 
-**Step 2** — paired detail `{target}/eval/{target}_{variant}_pbr_paired.csv`,
-plus two summary tables in `--out-dir`:
-
-| File | |
-|:---|:---|
-| `pbr_paired_nowater.csv` | the reported convention |
-| `pbr_paired_full.csv` | all 22 checks, for supplementary material |
-
-Columns: `n_paired`, `base_pass_rate`, `guided_pass_rate`, `delta_pp`,
-`n_gain`, `n_loss`, `n_tie`, `better_rate`, `better_rate_discordant`,
-`mcnemar_p`.
+All 22 checks are recorded here, **water included** — the water checks are
+excluded downstream, not at scoring time, so the record stays complete.
 
 ## The water convention
 
-`nowater` passes a molecule when all 22 checks pass **or** its only failure is
-`minimum_distance_to_waters`:
+PBR is reported **without** the water-related checks. Of the two PoseBusters
+water checks —
+
+| Check | |
+|:---|:---|
+| `minimum_distance_to_waters` | closest contact between ligand and any water |
+| `volume_overlap_with_waters` | ligand volume overlapping water volume |
+
+— only `minimum_distance_to_waters` is excluded. A molecule counts as passing
+when all 22 checks pass, **or** when its only failure is that one check:
 
 ```python
 WATER_CHECK = 'minimum_distance_to_waters'
 ```
 
-DiffGui is trained without crystallographic water as a conditioning input, so the
-model never sees a solvent shell and cannot learn to avoid one. Scoring with
-water included would fail molecules for colliding with water they cannot see.
-Only that one check is excluded; `volume_overlap_with_waters` still counts, so
-`nowater` is not identical to "all water checks dropped". Changing this changes
-reported numbers, so it is left exactly as it stands.
+DiffGui is trained without crystallographic water as a conditioning input, so
+the model never sees a solvent shell and cannot learn to avoid one. Scoring with
+water included would fail generated molecules for colliding with water they
+cannot see — that measures a blind spot of the model, not the quality of the
+conformation it produced.
 
-## Pairing
-
-Both sides are matched by canonical SMILES with stereochemistry removed, then
-zipped within each SMILES group in ascending numeric `mol_id` order
-(`base[i]` ↔ `guided[i]`, stopping at the shorter side). The implementation is
-`eval_utils.zip_by_smiles`, shared with the other indicators so that
-cross-indicator comparisons use identical pairs. When the base group has fewer
-instances of a SMILES than the guided group, the surplus guided instances are
-reported as `n_unmatched_instances` rather than silently dropped.
+`volume_overlap_with_waters` is kept in the tally, so this convention is not the
+same as "all water checks dropped".

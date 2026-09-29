@@ -1,9 +1,8 @@
 """
-results8 单靶点 PBR —— 第 1 步（PoseBusters，pb 环境）。
+单靶点 PBR（PoseBusters，pb 环境）。
 
-对 total/split 变体跑 PoseBusters(config='dock')，vs 全蛋白，输出逐分子 CSV + PBR 统计。
-这一步记录完整 22 项、**不过滤水的检查项**；去水在第 2 步 build_pbr_paired.py 里做
-（那一步要同时出 full 和 nowater 两个口径，这里提前滤掉就再也算不出 full 了）。
+对指定变体跑 PoseBusters(config='dock')，vs 全蛋白，输出逐分子 CSV + PBR 统计。
+记录完整 22 项、**不过滤水的检查项** —— 去水是分析时的口径，不在这里做。
 
 输入：{results_root}/{target}/native/{target}_protein.pdb   全蛋白
       {results_root}/{target}/{variant}/*.sdf              待评分分子
