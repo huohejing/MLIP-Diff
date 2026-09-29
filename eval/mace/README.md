@@ -4,9 +4,9 @@ MACE interaction energy of the generated conformations.
 
 | | |
 |:---|:---|
-| `E_lig` | ligand alone |
-| `E_total` | ligand + pocket |
-| `E_int` | `E_total - E_lig - E_pocket` |
+| `E_complex` | ligand + pocket |
+| `E_intra` | ligand alone |
+| `E_inter` | `E_complex - E_intra - E_pocket` |
 
 ## Requirements
 
@@ -47,9 +47,9 @@ hydrogenated pocket. Ligands are hydrogenated inside the script with RDKit,
 | Column | |
 |:---|:---|
 | `group`, `smiles`, `n_heavy` | |
-| `base_E_total_eV`, `guided_E_total_eV`, `diff_E_total_eV`, `E_total_better` | |
-| `base_E_lig_eV`, `guided_E_lig_eV`, `diff_E_lig_eV`, `E_lig_better` | |
-| `base_E_int_eV`, `guided_E_int_eV`, `diff_E_int_eV`, `E_int_better` | |
+| `base_E_complex_eV`, `guided_E_complex_eV`, `diff_E_complex_eV`, `E_complex_better` | |
+| `base_E_intra_eV`, `guided_E_intra_eV`, `diff_E_intra_eV`, `E_intra_better` | |
+| `base_E_inter_eV`, `guided_E_inter_eV`, `diff_E_inter_eV`, `E_inter_better` | |
 
 `diff_*` is `base - guided`, so positive means the guided molecule is lower in
 energy. Base and guided molecules are paired by canonical SMILES, then zipped in

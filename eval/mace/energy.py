@@ -1,4 +1,4 @@
-"""MACE 能量评估：配体自能 E_lig、复合物总能 E_total、相互作用能 E_int = E_total - E_lig - E_pocket。
+"""MACE 能量评估：配体自能 E_intra、复合物总能 E_complex、相互作用能 E_inter = E_complex - E_intra - E_pocket。
 
 配体用 RDKit 加氢（Chem.AddHs(addCoords=True)），口袋从 full_pocket.npz 读
 （由 scripts/prepare_target_mace.py 生成）。基线组与引导组按 SMILES 配对，
@@ -141,26 +141,26 @@ def main():
                     'group': group,
                     'smiles': smi,
                     'n_heavy': mat.GetNumAtoms() if mat else '',
-                    'base_E_total_eV': round(bet, 1) if bet else '',
-                    'guided_E_total_eV': round(get_, 1) if get_ else '',
-                    'diff_E_total_eV': round(bet - get_, 3) if bet and get_ else '',
-                    'E_total_better': (bet - get_ > 0) if bet and get_ else '',
-                    'base_E_lig_eV': round(bel, 3) if bel else '',
-                    'guided_E_lig_eV': round(gel, 3) if gel else '',
-                    'diff_E_lig_eV': round(bel - gel, 3) if bel and gel else '',
-                    'E_lig_better': (bel - gel > 0) if bel and gel else '',
-                    'base_E_int_eV': round(bei, 3) if bei else '',
-                    'guided_E_int_eV': round(gei, 3) if gei else '',
-                    'diff_E_int_eV': round(bei - gei, 3) if bei and gei else '',
-                    'E_int_better': (bei - gei > 0) if bei and gei else '',
+                    'base_E_complex_eV': round(bet, 1) if bet else '',
+                    'guided_E_complex_eV': round(get_, 1) if get_ else '',
+                    'diff_E_complex_eV': round(bet - get_, 3) if bet and get_ else '',
+                    'E_complex_better': (bet - get_ > 0) if bet and get_ else '',
+                    'base_E_intra_eV': round(bel, 3) if bel else '',
+                    'guided_E_intra_eV': round(gel, 3) if gel else '',
+                    'diff_E_intra_eV': round(bel - gel, 3) if bel and gel else '',
+                    'E_intra_better': (bel - gel > 0) if bel and gel else '',
+                    'base_E_inter_eV': round(bei, 3) if bei else '',
+                    'guided_E_inter_eV': round(gei, 3) if gei else '',
+                    'diff_E_inter_eV': round(bei - gei, 3) if bei and gei else '',
+                    'E_inter_better': (bei - gei > 0) if bei and gei else '',
                 })
         n_total = len(glob.glob(f'{g_dir}/*.sdf'))
         print(f'  {group}: {matched} 对 / {n_total} 个生成分子')
 
     fields = ['group', 'smiles', 'n_heavy',
-              'base_E_total_eV', 'guided_E_total_eV', 'diff_E_total_eV', 'E_total_better',
-              'base_E_lig_eV', 'guided_E_lig_eV', 'diff_E_lig_eV', 'E_lig_better',
-              'base_E_int_eV', 'guided_E_int_eV', 'diff_E_int_eV', 'E_int_better']
+              'base_E_complex_eV', 'guided_E_complex_eV', 'diff_E_complex_eV', 'E_complex_better',
+              'base_E_intra_eV', 'guided_E_intra_eV', 'diff_E_intra_eV', 'E_intra_better',
+              'base_E_inter_eV', 'guided_E_inter_eV', 'diff_E_inter_eV', 'E_inter_better']
     out = os.path.join(os.path.dirname(target_dir), f'{args.target}_full_eval_off24.csv')
     with open(out, 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=fields)
@@ -171,10 +171,10 @@ def main():
     for g in sorted(set(r['group'] for r in rows)):
         gr = [r for r in rows if r['group'] == g]
         n = len(gr)
-        n_tot = sum(1 for r in gr if r['E_total_better'] is True)
-        n_lig = sum(1 for r in gr if r['E_lig_better'] is True)
-        n_int = sum(1 for r in gr if r['E_int_better'] is True)
-        print(f'  {g}: n={n}  E_total 更低 {n_tot}/{n}  E_lig 更低 {n_lig}/{n}  E_int 更低 {n_int}/{n}')
+        n_tot = sum(1 for r in gr if r['E_complex_better'] is True)
+        n_lig = sum(1 for r in gr if r['E_intra_better'] is True)
+        n_int = sum(1 for r in gr if r['E_inter_better'] is True)
+        print(f'  {g}: n={n}  E_complex 更低 {n_tot}/{n}  E_intra 更低 {n_lig}/{n}  E_inter 更低 {n_int}/{n}')
 
 
 if __name__ == '__main__':
