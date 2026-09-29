@@ -191,7 +191,7 @@ Settings used for the reported results: `start_step: 25`, `interval: 1`,
 | Key | Meaning |
 |:---|:---|
 | `guidance_log` | per-step CSV: one row per guidance step, with forces, scales and energies |
-| `guidance_atom_log` | per-atom CSV: displacement, direction cosine against `F_inter`, and per-atom `\|F_intra\|`, `\|F_inter\|`, `\|F_complex\|` — written as the columns `F_lig_mag`, `F_int_mag`, `F_total_mag` |
+| `guidance_atom_log` | per-atom CSV: displacement, direction cosine against `F_inter`, and per-atom `\|F_intra\|`, `\|F_inter\|`, `\|F_complex\|` |
 
 `guidance_atom_log` is only written when `guidance_log` is also set.
 

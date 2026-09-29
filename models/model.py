@@ -1081,8 +1081,8 @@ class DiffGui(Module):
                                 F_int_dir = F_int / (F_int.norm(dim=-1, keepdim=True) + 1e-8)
                                 F_total_dir = F_total_lig / (F_total_lig.norm(dim=-1, keepdim=True) + 1e-8)
                                 dir_analysis = {
-                                    'cos_g_int': float((mace_dir * F_int_dir).sum(dim=-1).mean().item()),
-                                    'cos_t_int': float((F_total_dir * F_int_dir).sum(dim=-1).mean().item()),
+                                    'cos_g_inter': float((mace_dir * F_int_dir).sum(dim=-1).mean().item()),
+                                    'cos_t_inter': float((F_total_dir * F_int_dir).sum(dim=-1).mean().item()),
                                     'proj_g': float((delta_phys * F_int_dir).sum(dim=-1).mean().item()),
                                     'proj_t': float(((delta_phys.norm(dim=-1, keepdim=True) * F_total_dir) * F_int_dir).sum(dim=-1).mean().item()),
                                 }
@@ -1176,15 +1176,15 @@ class DiffGui(Module):
                                 # sync beyond the per-step tensors, dumped after each
                                 # molecule). These columns are the paper evidence for
                                 # "split is necessary": direction agreement with F_inter
-                                # (cos_g_int vs cos_t_int), the force-magnitude ratio R
+                                # (cos_g_inter vs cos_t_inter), the force-magnitude ratio R
                                 # that motivates alpha, and the MACE energy trajectory.
                                 dx_mean = delta_phys.norm(dim=-1).mean().item()
                                 f_lig_mag = mace_f.norm(dim=-1).mean().item()
                                 f_int_mag = F_int.norm(dim=-1).mean().item()
-                                # F_total_mag: the un-mixed resultant (what the
+                                # F_complex_mag: the un-mixed resultant (what the
                                 # total/v2 mode would push with) — lets the paper
                                 # reconstruct the total-mode displacement, not just
-                                # its direction (cos_t_int).
+                                # its direction (cos_t_inter).
                                 f_total_mag = F_total_lig.norm(dim=-1).mean().item()
                                 # F_eff_mag: the actual mixed force |F_intra + α·F_inter|
                                 f_eff_mag = F_mag.mean().item()
@@ -1192,9 +1192,9 @@ class DiffGui(Module):
                                     'step': step,
                                     'm_t': m_t.detach(),
                                     'dx_mean': dx_mean,
-                                    'F_lig_mag': f_lig_mag,
-                                    'F_int_mag': f_int_mag,
-                                    'F_total_mag': f_total_mag,
+                                    'F_intra_mag': f_lig_mag,
+                                    'F_inter_mag': f_int_mag,
+                                    'F_complex_mag': f_total_mag,
                                     'F_eff_mag': f_eff_mag,
                                     'R': f_int_mag / (f_lig_mag + 1e-8),
                                     's_F': s_F.item(),
@@ -1203,13 +1203,13 @@ class DiffGui(Module):
                                     'clipped': int(clipped_flag.item()),
                                     'proxy_conf': conf_mean,
                                     'effective_scale': alpha_eff_mean,
-                                    'cos_g_int': dir_analysis['cos_g_int'],
-                                    'cos_t_int': dir_analysis['cos_t_int'],
+                                    'cos_g_inter': dir_analysis['cos_g_inter'],
+                                    'cos_t_inter': dir_analysis['cos_t_inter'],
                                     'proj_g': dir_analysis['proj_g'],
                                     'proj_t': dir_analysis['proj_t'],
                                     'stretch_clamped': int(stretch_clamped),
-                                    'E_lig': float(np.mean(per_mol_E_lig)) if per_mol_E_lig else float('nan'),
-                                    'E_int': float(np.mean(per_mol_E_int)) if per_mol_E_int else float('nan'),
+                                    'E_intra': float(np.mean(per_mol_E_lig)) if per_mol_E_lig else float('nan'),
+                                    'E_inter': float(np.mean(per_mol_E_int)) if per_mol_E_int else float('nan'),
                                 })
 
 
@@ -1269,20 +1269,20 @@ class DiffGui(Module):
 
             with open(log_path, 'a') as gf:
                 if header_needed:
-                    gf.write('step,m_t,dx_mean,F_lig_mag,F_int_mag,F_total_mag,F_eff_mag,'
+                    gf.write('step,m_t,dx_mean,F_intra_mag,F_inter_mag,F_complex_mag,F_eff_mag,'
                              'R,s_F,w_min,w_max,clipped,proxy_conf,effective_scale,'
-                             'cos_g_int,cos_t_int,proj_g,proj_t,stretch_clamped,E_lig,E_int\n')
+                             'cos_g_inter,cos_t_inter,proj_g,proj_t,stretch_clamped,E_intra,E_inter\n')
                 for e in guidance_log:
                     gf.write(f"{e['step']},{float(e['m_t']):.6f},{float(e['dx_mean']):.6f},"
-                             f"{_f(e.get('F_lig_mag'), '.3f')},{_f(e.get('F_int_mag'), '.3f')},"
-                             f"{_f(e.get('F_total_mag'), '.3f')},{_f(e.get('F_eff_mag'), '.3f')},"
+                             f"{_f(e.get('F_intra_mag'), '.3f')},{_f(e.get('F_inter_mag'), '.3f')},"
+                             f"{_f(e.get('F_complex_mag'), '.3f')},{_f(e.get('F_eff_mag'), '.3f')},"
                              f"{_f(e.get('R'), '.3f')},{_f(e.get('s_F'), '.3f')},"
                              f"{float(e['w_min']):.4f},{float(e['w_max']):.4f},"
                              f"{_f(e.get('clipped'), 'd')},"
                              f"{_f(e.get('proxy_conf'), '.4f')},{_f(e.get('effective_scale'), '.4f')},"
-                             f"{_f(e.get('cos_g_int'), '.4f')},{_f(e.get('cos_t_int'), '.4f')},"
+                             f"{_f(e.get('cos_g_inter'), '.4f')},{_f(e.get('cos_t_inter'), '.4f')},"
                              f"{_f(e.get('proj_g'), '.4f')},{_f(e.get('proj_t'), '.4f')},"
-                             f"{_f(e.get('stretch_clamped'), 'd')},{_f(e.get('E_lig'), '.3f')},{_f(e.get('E_int'), '.3f')}\n")
+                             f"{_f(e.get('stretch_clamped'), 'd')},{_f(e.get('E_intra'), '.3f')},{_f(e.get('E_inter'), '.3f')}\n")
 
             # per-atom displacement log (model remaining vs guidance push;
             # split branch appends extra columns: cos(Δx_i, F_inter,i),
