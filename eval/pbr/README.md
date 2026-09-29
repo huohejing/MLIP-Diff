@@ -104,12 +104,3 @@ zipped within each SMILES group in ascending numeric `mol_id` order
 cross-indicator comparisons use identical pairs. When the base group has fewer
 instances of a SMILES than the guided group, the surplus guided instances are
 reported as `n_unmatched_instances` rather than silently dropped.
-
-## Note on the PoseBusters call
-
-Step 1 passes **file paths** to `PoseBusters.bust()`, not RDKit molecule
-objects. PoseBusters sorts its result table by `str(mol_pred)`
-(`posebusters.py:263`); for a molecule object that is its memory address, so the
-returned row order is unrelated to the input order and differs between runs.
-Passing paths makes `str(mol_pred)` the path itself, which is stable, and the
-`file` column can then be read straight out of each row.

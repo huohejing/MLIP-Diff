@@ -53,8 +53,7 @@ def main():
         if not files:
             print(f'[SKIP] {t}/{v}: 无 SDF')
             continue
-        # 传路径，不要传解析好的 Mol 对象：PoseBusters 拿 str(mol_pred) 当结果表的排序键，
-        # 传对象时那是内存地址，行序与输入顺序无关、每次运行还不同，逐分子结果会挂错文件名。
+        # 直接把 SDF 文件路径交给 PoseBusters
         res = pb.bust(files, mol_cond=protein, full_report=False)
         res = res.reset_index()
         test_cols = [c for c in res.columns
@@ -69,7 +68,6 @@ def main():
         with open(out_csv, 'w', newline='', encoding='utf-8-sig') as f:
             w = csv.writer(f)
             w.writerow(['file', 'pbr_pass', 'failed_checks'])
-            # 文件名从行里的 file 列取，不用输入列表的下标 —— 行序不保证等于输入序
             for row in res.to_dict('records'):
                 failed = [c for c in test_cols if not bool(row[c])]
                 fname = os.path.basename(str(row['file']))
