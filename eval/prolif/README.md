@@ -2,29 +2,26 @@
 
 Protein–ligand interaction counts for the generated conformations.
 
+| Script | |
+|:---|:---|
+| `hbond.py` | hydrogen bonds |
+| `hydrophobic.py` | hydrophobic contacts |
+
 ## Requirements
 
 ```
 pip install prolif
 ```
 
-`hbond_implicit.py` additionally needs **ProLIF ≥ 2.2** — 2.0.x has no
-`ImplicitHBDonor` / `ImplicitHBAcceptor`.
-
 ## Usage
 
 ```
-python eval/prolif/hbond.py           --target 3ctj --variants base total split
-python eval/prolif/hbond_geometry.py  --target 3ctj --variants base total split
-python eval/prolif/hbond_implicit.py  --target 3ctj --variants base total split
-python eval/prolif/hydrophobic.py     --target 3ctj --variants base total split
-python eval/prolif/contacts.py        --target 3ctj --contact pistack
+python eval/prolif/hbond.py       --target 3ctj --variants base total split
+python eval/prolif/hydrophobic.py --target 3ctj --variants base total split
 ```
 
-`contacts.py --contact` is one of `pistack`, `saltbridge`, `halogen`,
-`pication`, `vdw`. `--workers` defaults to 4.
-
-`--results-root` defaults to `$MLIPDIFF_RESULTS8`, then to `./results8`.
+`--workers` defaults to 4. `--results-root` defaults to `$MLIPDIFF_RESULTS8`,
+then to `./results8`.
 
 ## Input
 
@@ -36,18 +33,15 @@ python eval/prolif/contacts.py        --target 3ctj --contact pistack
 └── {total,split}/*.sdf             guided molecules
 ```
 
-| Script | Pocket |
-|:---|:---|
-| `hbond.py`, `hbond_geometry.py`, `contacts.py` | `{target}_pocket_h.pdb` |
-| `hbond_implicit.py`, `hydrophobic.py` | `{target}_pocket.pdb` |
+`hbond.py` uses the hydrogenated pocket `{target}_pocket_h.pdb` — polar
+hydrogens fix the hydrogen-bond geometry. `hydrophobic.py` uses the heavy-atom
+pocket `{target}_pocket.pdb`, since a hydrophobic contact is a heavy-atom
+distance and needs no hydrogens.
 
-The pocket is hydrogenated with PDBFixer. Ligands are hydrogenated inside the
-scripts with RDKit, `Chem.AddHs(mol, addCoords=True)`.
+Ligands are hydrogenated inside the scripts with RDKit,
+`Chem.AddHs(mol, addCoords=True)`.
 
 ## Output
 
-`{results_root}/{target}/eval/{target}_{variant}_{name}.csv`.
-
-All but `hbond_geometry.py` write `file,n` — one count per molecule.
-`hbond_geometry.py` writes `file,dist,DHA_angle`, one row per hydrogen bond, in
-Å and degrees.
+`{results_root}/{target}/eval/{target}_{variant}_{name}.csv`, column `file,n` —
+one count per molecule.
