@@ -100,8 +100,8 @@ python scripts/prepare_target_mace.py \
 * `3ctj_pocket_h.pdb`: the same residues completed and hydrogenated with
   PDBFixer. This is the MACE protein environment, set as
   `physical_guidance.pocket_pdb`.
-* `full_pocket.npz`: flat coordinate and element arrays of the pocket, read by
-  the evaluation scripts.
+* `full_pocket.npz`: flat coordinate and element arrays of the hydrogenated
+  pocket, read by the MACE energy evaluation.
 
 The hydrogenated pocket is not optional: polar hydrogens fix the hydrogen-bond
 geometry the guidance force is computed from. Hydrogenation requires `pdbfixer`.
@@ -141,7 +141,7 @@ sample:
 | Mode | Guidance force | Character |
 |:---|:---|:---|
 | `complex_force` | the complex force, weighted per atom by its magnitude | the whole ligand-protein force drives the step |
-| `interaction_aware` | `F_lig + alpha * F_int` | the protein-induced interaction component is amplified relative to the ligand's own relaxation |
+| `interaction_aware` | `F_intra + alpha * F_inter` | the protein-induced interaction component is amplified relative to the ligand's own relaxation |
 
 `alpha` (default **5.0**) is the amplification factor of the interaction
 component in `interaction_aware` mode. `alpha = 0` gives pure ligand relaxation,
@@ -191,7 +191,7 @@ Settings used for the reported results: `start_step: 25`, `interval: 1`,
 | Key | Meaning |
 |:---|:---|
 | `guidance_log` | per-step CSV: one row per guidance step, with forces, scales and energies |
-| `guidance_atom_log` | per-atom CSV: displacement, direction cosine against `F_int`, and per-atom `\|F_lig\|`, `\|F_int\|`, `\|F_total\|` |
+| `guidance_atom_log` | per-atom CSV: displacement, direction cosine against `F_inter`, and per-atom `\|F_intra\|`, `\|F_inter\|`, `\|F_complex\|` — written as the columns `F_lig_mag`, `F_int_mag`, `F_total_mag` |
 
 `guidance_atom_log` is only written when `guidance_log` is also set.
 
@@ -217,12 +217,12 @@ contributions:
 
 | Evaluation | System | Force |
 |:---|:---|:---|
-| Complex | ligand proxy + fixed local protein environment | `F_total` |
-| Isolated | ligand proxy alone | `F_lig` |
+| Complex | ligand proxy + fixed local protein environment | `F_complex` |
+| Isolated | ligand proxy alone | `F_intra` |
 
 The interaction-related component is their difference:
 ```
-F_int = F_total - F_lig
+F_inter = F_complex - F_intra
 ```
 
 It carries the change in ligand forces caused by the protein environment, rather

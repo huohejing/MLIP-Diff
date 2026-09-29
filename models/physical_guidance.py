@@ -8,8 +8,8 @@ MACE-OFF24 potential under a fixed local protein environment. Two evaluations
 separate the two physical contributions:
 
     F_complex      ligand proxy together with the fixed protein environment
-    F_ligand       ligand proxy alone
-    F_interaction  = F_complex - F_ligand
+    F_intra        ligand proxy alone
+    F_inter        = F_complex - F_intra
 
 The difference is the signal that is used: it carries the change in ligand
 forces induced by the protein environment, rather than bulk conformational

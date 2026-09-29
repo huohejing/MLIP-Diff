@@ -25,8 +25,8 @@ energy-evaluation scripts read:
                           -> physical_guidance.pocket_pdb
 
     full_pocket.npz       coords (N,3) float32 + elements (N,) int32 of every
-                          atom in the pocket, for the MACE energy evaluation
-                          scripts (full_eval*.py, elig_precise.py)
+                          atom in the hydrogenated pocket, for the MACE energy
+                          evaluation scripts (full_eval*.py, elig_precise.py)
 
 Usage:
     python scripts/prepare_target_mace.py \
@@ -126,9 +126,9 @@ def hydrogenate_pocket(pocket_pdb, out_path, ph=7.0):
 def extract_mace_pocket(pocket_pdb, outdir):
     """Every atom of the pocket as flat arrays for the evaluation scripts.
 
-    Reads the NON-hydrogenated pocket: the evaluation scripts combine this
-    array with the MACE-derived hydrogen positions themselves, and adding
-    hydrogens here would double-count them.
+    Takes the HYDROGENATED pocket: the MACE evaluation scores the ligand
+    against a fixed protein environment, and the polar hydrogens are part of
+    that environment.
     """
     coords, elements = [], []
     with open(pocket_pdb) as f:
@@ -137,8 +137,10 @@ def extract_mace_pocket(pocket_pdb, outdir):
                 continue
             coords.append([float(line[30:38]), float(line[38:46]),
                            float(line[46:54])])
-            name = line[12:16].strip()
-            elem = name[0] if name and not name[0].isdigit() else name[1:2]
+            elem = line[76:78].strip()          # 元素列
+            if not elem:                        # 没有元素列就退回原子名
+                name = line[12:16].strip()
+                elem = name[0] if name and not name[0].isdigit() else name[1:2]
             elements.append(ELEMENT_MAP.get(elem, 6))
 
     if not coords:
@@ -174,14 +176,14 @@ def main():
 
     pocket_pdb, _ = extract_pocket(args.protein, args.ligand,
                                    args.pocket_radius, args.outdir, args.name)
-    hydrogenate_pocket(pocket_pdb,
-                       os.path.join(args.outdir, f"{args.name}_pocket_h.pdb"),
-                       args.ph)
-    extract_mace_pocket(pocket_pdb, args.outdir)
+    pocket_h = os.path.join(args.outdir, f"{args.name}_pocket_h.pdb")
+    hydrogenate_pocket(pocket_pdb, pocket_h, args.ph)
+    extract_mace_pocket(pocket_h, args.outdir)
 
     print("\nDone. Point the sampling config at:")
     print(f"  model.target                        {args.outdir}/{args.name}_pocket.pdb")
-    print(f"  physical_guidance.pocket_pdb        {args.outdir}/{args.name}_pocket_h.pdb")
+    print(f"  physical_guidance.pocket_pdb        {pocket_h}")
+    print(f"  MACE energy evaluation              {args.outdir}/full_pocket.npz")
 
 
 if __name__ == "__main__":

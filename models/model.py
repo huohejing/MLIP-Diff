@@ -448,17 +448,17 @@ class DiffGui(Module):
         #      the ligand moves.
         #
         #   3. Evaluate MACE twice (mace_pocket_force_with_h):
-        #        ligand + pocket  ->  F_total_lig , E_total
-        #        ligand alone     ->  F_lig       , E_lig
+        #        ligand + pocket  ->  F_complex , E_total
+        #        ligand alone     ->  F_intra       , E_lig
         #      The difference is the interaction term:
-        #        F_int = F_total_lig - F_lig
+        #        F_inter = F_complex - F_intra
         #        E_int = E_total     - E_lig
         #
         #   4. Turn those forces into a coordinate displacement. TWO modes are
         #      available and they are mutually exclusive - pick one in the
         #      YAML under sample.physical_guidance, see the branch below:
-        #        complex_force      uses F_total_lig, weighted per atom
-        #        interaction_aware  mixes F_total_lig and F_lig
+        #        complex_force      uses F_complex, weighted per atom
+        #        interaction_aware  mixes F_complex and F_intra
         #
         #   5. Attenuate the step by proxy confidence, clamp it if any bond
         #      would stretch past max_stretch, then add it to the coordinates.
@@ -752,9 +752,9 @@ class DiffGui(Module):
                                 # ---- This molecule's physical evaluation ----
                                 # Rebuild the ligand proxy (if readiness gating is on), pick the
                                 # 5 A protein environment once, then evaluate MACE twice:
-                                #     ligand + pocket -> F_total_lig, E_total
-                                #     ligand alone    -> F_lig,       E_lig
-                                # F_int = F_total_lig - F_lig is the interaction term. Which of
+                                #     ligand + pocket -> F_complex, E_total
+                                #     ligand alone    -> F_intra,       E_lig
+                                # F_inter = F_complex - F_intra is the interaction term. Which of
                                 # these the guidance actually uses is decided by the mode branch
                                 # further down.
                             with torch.enable_grad():
@@ -789,7 +789,7 @@ class DiffGui(Module):
                                             pkt_idx = np.where(mask_p)[0]  # indices into parsed pocket atom arrays
 
                                         # Single MACE complex call returns everything:
-                                        # (F_inter, E_inter, F_total_lig, F_lig, E_total)
+                                        # (F_inter, E_inter, F_complex, F_intra, E_total)
                                         Fp_i, E_i, Ft_i, Fl_i, Et_i = mace_pocket_force_with_h(
                                             md['pos'], md['elem'], md['bonds'],
                                             pkt_c, pkt_e,
@@ -903,8 +903,8 @@ class DiffGui(Module):
                         # the YAML. They are mutually exclusive and a config
                         # with none of them raises rather than silently
                         # running with no guidance at all.
-                        #   complex_force      -> F_total_lig, per-atom weighted
-                        #   interaction_aware  -> mixes F_total_lig and F_lig
+                        #   complex_force      -> F_complex, per-atom weighted
+                        #   interaction_aware  -> mixes F_complex and F_intra
                         if pg_mode == 'mace_only' and not skip_guidance:
                             if pg.get('complex_force', False):
                                 # ── complex_force: direction-only, per-atom force magnitudes kept ──
@@ -1036,20 +1036,20 @@ class DiffGui(Module):
 
 
                             elif pg.get('interaction_aware', False):
-                                # ── interaction_aware: magnitude-preserving mix of F_lig and F_int ──
+                                # ── interaction_aware: magnitude-preserving mix of F_intra and F_inter ──
                                 # Mix at the FORCE level, NOT direction voting:
-                                #   F_eff,i = (1-alpha)*F_lig,i + alpha*F_int,i
+                                #   F_eff,i = (1-alpha)*F_intra,i + alpha*F_inter,i
                                 # alpha weights the two physical force components
                                 # while each keeps its real magnitude; which one
-                                # dominates depends on ||F_lig||, ||F_int||, cosθ.
+                                # dominates depends on ||F_intra||, ||F_inter||, cosθ.
                                 # (Old bug: both forces were normalized to unit
                                 #  vectors first — direction voting erased the
                                 #  natural size relation and let E_lig be flipped.)
-                                # alpha = F_int amplification factor:
-                                #   F_eff = F_lig + alpha*F_int
-                                # F_lig keeps its full magnitude (E_lig is never
-                                # weakened by alpha); alpha=0 -> pure F_lig,
-                                # alpha=1 -> natural resultant F_total.
+                                # alpha = F_inter amplification factor:
+                                #   F_eff = F_intra + alpha*F_inter
+                                # F_intra keeps its full magnitude (E_lig is never
+                                # weakened by alpha); alpha=0 -> pure F_intra,
+                                # alpha=1 -> natural resultant F_complex.
                                 F_int = F_total_lig - mace_f
                                 alpha = pg.get('alpha', 5.0)
                                 F_mixed = mace_f + alpha * F_int
@@ -1077,7 +1077,7 @@ class DiffGui(Module):
                                 delta_phys = pg.get('dir_scale', 6.0) * m_t * w_i * mace_dir
 
                                 # Direction analysis: how much of this step's
-                                # displacement actually goes toward F_int.
+                                # displacement actually goes toward F_inter.
                                 F_int_dir = F_int / (F_int.norm(dim=-1, keepdim=True) + 1e-8)
                                 F_total_dir = F_total_lig / (F_total_lig.norm(dim=-1, keepdim=True) + 1e-8)
                                 dir_analysis = {
@@ -1111,7 +1111,7 @@ class DiffGui(Module):
 
                                 # Per-atom diagnostics: model's remaining
                                 # displacement |x0_pred - x_t| vs guidance push.
-                                # + per-atom direction: cos(Δx_i, F_int,i) — how much
+                                # + per-atom direction: cos(Δx_i, F_inter,i) — how much
                                 # of this atom's push actually points along the
                                 # interaction force (paper evidence for split).
                                 if pg.get('guidance_atom_log'):
@@ -1122,11 +1122,11 @@ class DiffGui(Module):
                                     fi_n = np.linalg.norm(fi_np, axis=-1) + 1e-8
                                     d_n = np.linalg.norm(d_np, axis=-1) + 1e-8
                                     cos_gi = (d_np * fi_np).sum(axis=-1) / (d_n * fi_n)
-                                    # per-atom force magnitudes: |F_lig|, |F_int| and
-                                    # |F_total| (needed to reconstruct the total-mode
+                                    # per-atom force magnitudes: |F_intra|, |F_inter| and
+                                    # |F_complex| (needed to reconstruct the total-mode
                                     # per-atom weight w_i if the paper wants the v2
-                                    # displacement; |F_lig| is not derivable from the
-                                    # other two because the F_lig-F_int angle is unknown)
+                                    # displacement; |F_intra| is not derivable from the
+                                    # other two because the F_intra-F_inter angle is unknown)
                                     fl_np = mace_f.detach().cpu().numpy()
                                     fl_n = np.linalg.norm(fl_np, axis=-1)
                                     ft_np = F_total_lig.detach().cpu().numpy()
@@ -1175,7 +1175,7 @@ class DiffGui(Module):
                                 # Per-step guidance log (accumulated without GPU→CPU
                                 # sync beyond the per-step tensors, dumped after each
                                 # molecule). These columns are the paper evidence for
-                                # "split is necessary": direction agreement with F_int
+                                # "split is necessary": direction agreement with F_inter
                                 # (cos_g_int vs cos_t_int), the force-magnitude ratio R
                                 # that motivates alpha, and the MACE energy trajectory.
                                 dx_mean = delta_phys.norm(dim=-1).mean().item()
@@ -1186,7 +1186,7 @@ class DiffGui(Module):
                                 # reconstruct the total-mode displacement, not just
                                 # its direction (cos_t_int).
                                 f_total_mag = F_total_lig.norm(dim=-1).mean().item()
-                                # F_eff_mag: the actual mixed force |F_lig + α·F_int|
+                                # F_eff_mag: the actual mixed force |F_intra + α·F_inter|
                                 f_eff_mag = F_mag.mean().item()
                                 guidance_log.append({
                                     'step': step,
@@ -1285,8 +1285,8 @@ class DiffGui(Module):
                              f"{_f(e.get('stretch_clamped'), 'd')},{_f(e.get('E_lig'), '.3f')},{_f(e.get('E_int'), '.3f')}\n")
 
             # per-atom displacement log (model remaining vs guidance push;
-            # split branch appends extra columns: cos(Δx_i, F_int,i),
-            # |F_int,i|, |F_total,i|; v2 branch keeps 5 columns)
+            # split branch appends extra columns: cos(Δx_i, F_inter,i),
+            # |F_inter,i|, |F_complex,i|; v2 branch keeps 5 columns)
             if physical_guidance_config.get('guidance_atom_log'):
                 al = physical_guidance_config.get('atom_log_data')
                 if al:

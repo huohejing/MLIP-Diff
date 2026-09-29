@@ -4,7 +4,7 @@
 #
 #   mode: mace_only + complex_force
 #       The guidance force is the interaction-aware decomposition
-#       F_complex - F_ligand, applied as a direction whose magnitude is set
+#       F_complex - F_intra, applied as a direction whose magnitude is set
 #       by the current diffusion step's coordinate update. This is the
 #       formulation described in the manuscript.
 #

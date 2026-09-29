@@ -27,8 +27,9 @@ python eval/strain/optimize.py --base base_sdf/ --guided guided_sdf/ \
     --model ~/.cache/mace/MACE-OFF24_medium.model
 
 # in-pocket strain — ligand and pocket computed together, pocket fixed throughout
+# give it the HYDROGENATED pocket, same as the MACE energy evaluation
 python eval/strain/optimize.py --base base_sdf/ --guided guided_sdf/ \
-    --pocket pocket.pdb --model ~/.cache/mace/MACE-OFF24_medium.model
+    --pocket 3ctj_pocket_h.pdb --model ~/.cache/mace/MACE-OFF24_medium.model
 ```
 
 `--device` defaults to `cuda`, `--steps2` to 300, `--max` limits the number of

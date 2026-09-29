@@ -8,8 +8,10 @@ Stage 2: 放开配体全部原子（口袋仍固定）→ E_opt
 用法:
     python optimize.py --sdf mol.sdf --model MACE-OFF24_medium.model
     python optimize.py --base base_sdf/ --guided guided_sdf/ --model MACE-OFF24_medium.model
-    python optimize.py --base base_sdf/ --guided guided_sdf/ --pocket pocket.pdb \
-        --model MACE-OFF24_medium.model
+    python optimize.py --base base_sdf/ --guided guided_sdf/ \
+        --pocket 3ctj_pocket_h.pdb --model MACE-OFF24_medium.model
+
+--pocket 传加氢口袋（与 MACE 能量评估同一套）。
 """
 import argparse, os, sys, csv, time
 import numpy as np

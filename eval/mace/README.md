@@ -36,8 +36,9 @@ python eval/mace/energy.py --target 3ctj_split --root /path/to/project
 └── scale_*/*_SDF/*.sdf          guided molecules
 ```
 
-`full_pocket.npz` is produced by `scripts/prepare_target_mace.py`. Ligands are
-hydrogenated inside the script with RDKit, `Chem.AddHs(mol, addCoords=True)`.
+`full_pocket.npz` is produced by `scripts/prepare_target_mace.py` and holds the
+hydrogenated pocket. Ligands are hydrogenated inside the script with RDKit,
+`Chem.AddHs(mol, addCoords=True)`.
 
 ## Output
 
