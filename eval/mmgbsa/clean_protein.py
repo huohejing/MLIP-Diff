@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""蛋白 PDB 清洗器 — 替代 A100 上损坏的 pdb4amber（amber20 的 pdb4amber shebang 指向构建树 python，无法运行）。
+"""蛋白 PDB 清洗器：清洗受体 PDB，供 tleap 建拓扑。
 
 实现 pdb4amber 常用组合的功能（-p --noter --most-populous -y）:
   1. 只保留标准残基（20 种氨基酸 + NME/ACE + HID/HIE/HIP/CYX），去水/离子/辅因子

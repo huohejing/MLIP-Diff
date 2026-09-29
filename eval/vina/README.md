@@ -1,28 +1,12 @@
 # Vina
 
 AutoDock Vina `score_only` scoring of the generated conformations, plus the
-crystal-ligand baseline the BNC ratio is measured against.
+crystal-ligand baseline that BNC is measured against.
 
-## Environment
+## Requirements
 
-```
-conda activate diffgui_cpu
-```
-
-Needs the `vina` Python package, `meeko` and `openbabel`. The `pb` environment
-used for PBR does not have them.
-
-## Scripts
-
-| File | |
-|:---|:---|
-| `score.py` | scores a directory of generated SDFs, pairs them against the base group, writes CSV + JSON |
-| `native_baseline.py` | scores the crystal ligand of each target, writes the baseline table |
-| `docking_vina.py` | `VinaDockingTask` — the scoring engine, from DiffGui |
-
-`score.py` is deliberately not called `vina.py`: Python puts the script's own
-directory first on `sys.path`, so a local `vina.py` would shadow the `vina`
-package that `docking_vina.py` imports.
+- AutoDock Vina: `pip install vina`
+- `meeko`, `openbabel`
 
 ## Usage
 
@@ -34,27 +18,22 @@ python eval/vina/score.py --target 3ctj \
     --pocket     /path/to/3ctj_pocket.pdb \
     --out-dir    /path/to/out
 
-# crystal ligand baseline — incremental, never overwrites other targets
+# crystal ligand baseline
 python eval/vina/native_baseline.py --targets 3ctj 1w51
 ```
 
-`--base-dir` and `--pocket` fall back to per-target defaults resolved against
-`$MLIPDIFF_ROOT` (default: the current directory), and both can be given
-explicitly — the command above does. `--workers` defaults to 3.
-
-`score.py` also takes `--discover`, which scans `<root>/data24` for every
-`{target}_*_guided` directory and scores all of them.
+`--discover` scans `<root>/data24` for every `{target}_*_guided` directory and
+scores all of them. `--base-dir` and `--pocket` otherwise fall back to
+per-target defaults resolved against `$MLIPDIFF_ROOT` (default: current
+directory).
 
 ## Protocol
 
-Scoring is `score_only` against the given pocket: no re-docking, no
-minimisation, the generated pose is left exactly as it is. This is what makes
-the numbers comparable between the base and guided groups — both are scored on
-their own conformations, not on a relaxed or re-docked one.
+`score_only` against the given pocket — no re-docking, no minimisation, the
+generated pose is left as it is. Base and guided molecules are therefore scored
+on their own conformations, which is what makes the two comparable.
 
-Scores with `|affinity| >= 100` kcal/mol are dropped as non-physical; a handful
-of clashing molecules produce such values, and they would otherwise dominate any
-mean.
+Scores with `|affinity| >= 100` kcal/mol are dropped as non-physical.
 
 ## Output
 
@@ -62,22 +41,26 @@ mean.
 
 | Column | |
 |:---|:---|
-| `smiles` | canonical SMILES, stereochemistry removed |
-| `base_vina`, `guided_vina` | score_only affinities, kcal/mol |
+| `smiles` | canonical SMILES, no stereochemistry |
+| `base_vina`, `guided_vina` | affinities, kcal/mol |
 | `diff_kcal` | `guided - base`; negative means guidance improved the score |
 | `guided_better` | `guided < base` |
 
-and the matching `vina_{target}_{variant}.json` with the summary: `n_paired`,
-`pct_better`, `mean_delta`, `median_delta` and the pairing `method` used.
+plus `vina_{target}_{variant}.json` with `n_paired`, `pct_better`, `mean_delta`,
+`median_delta`.
 
-`native_baseline.py` writes `{root}/validation/native_vina_baseline.csv` with
-`target, native_vina_kcal, n_atoms`. It reads the existing file and updates only
-the targets named on the command line, so scoring one target does not wipe the
-others.
+`native_baseline.py` writes `{root}/validation/native_vina_baseline.csv`. It
+updates only the targets named on the command line, so scoring one target does
+not wipe the others.
 
-## Pairing
+## Files
 
-Base and guided molecules are matched by file name index when the two groups
-agree on index and SMILES for more than 90 % of their common files — the usual
-case, since both groups come from the same sampling run. Otherwise they fall
-back to SMILES pairing. The method actually used is recorded in the JSON.
+| | |
+|:---|:---|
+| `score.py` | scoring and base pairing |
+| `native_baseline.py` | crystal-ligand baseline |
+| `docking_vina.py` | `VinaDockingTask`, from DiffGui |
+
+`score.py` is not called `vina.py` on purpose: Python puts the script's own
+directory first on `sys.path`, so a local `vina.py` would shadow the `vina`
+package that `docking_vina.py` imports.

@@ -4,7 +4,7 @@
 # 输出: results/<target>/<group>/<mol_id>.txt 一行结果 (status,vdw,eel,egb,esurf,total)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 set -u
-export AMBERHOME=$HOME/soft/amber20
+export AMBERHOME=${AMBERHOME:-$HOME/soft/amber20}
 export PATH=$AMBERHOME/bin:$PATH
 
 TARGET=$1; GROUP=$2; SDF=$(readlink -f $3)
