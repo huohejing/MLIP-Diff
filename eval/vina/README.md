@@ -19,7 +19,6 @@ used for PBR does not have them.
 | `score.py` | scores a directory of generated SDFs, pairs them against the base group, writes CSV + JSON |
 | `native_baseline.py` | scores the crystal ligand of each target, writes the baseline table |
 | `docking_vina.py` | `VinaDockingTask` — the scoring engine, from DiffGui |
-| `docking_qvina.py` | base docking helpers, required by `docking_vina.py` |
 
 `score.py` is deliberately not called `vina.py`: Python puts the script's own
 directory first on `sys.path`, so a local `vina.py` would shadow the `vina`

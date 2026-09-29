@@ -8,13 +8,34 @@ from rdkit.Chem import AllChem
 import tempfile
 import AutoDockTools
 import os
+import random
+import string
 import contextlib
 
 import sys
 # 仓库根（本文件在 eval/vina/ 下），用于 import 仓库里的 utils.reconstruct
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utils.reconstruct import reconstruct_from_generated
-from docking_qvina import get_random_id, BaseDockingTask
+
+
+def get_random_id(length=30):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))
+
+
+class BaseDockingTask(object):
+    """VinaDockingTask 的基类：只负责存住受体和配体的结构。"""
+
+    def __init__(self, pdb_block, ligand_rdmol):
+        super().__init__()
+        self.pdb_block = pdb_block
+        self.ligand_rdmol = ligand_rdmol
+
+    def run(self):
+        raise NotImplementedError()
+
+    def get_results(self):
+        raise NotImplementedError()
 
 
 def supress_stdout(func):
