@@ -1,5 +1,5 @@
 # MLIP-Diff
-Interaction-Aware Physical Guidance for Diffusion-Based 3D Ligand Generation With Machine-Learning Interatomic Potentials
+Interaction-Aware Machine Learning Interatomic Potential Guidance for Diffusion-Based 3D Ligand Generation in Protein Pockets
 
 A training-free, inference-time module that adds machine-learning interatomic
 potential (MLIP) feedback to a pretrained diffusion model. MACE-OFF24 energies
@@ -256,8 +256,8 @@ original copyright notice is retained in `LICENSE`.
 ## Citation
 ```
 @article{
-  title={Interaction-Aware Physical Guidance for Diffusion-Based 3D Ligand Generation With Machine-Learning Interatomic Potentials},
-  author={Hejing Huo, Jinfeng Liu},
+  title={Interaction-Aware Machine Learning Interatomic Potential Guidance for Diffusion-Based 3D Ligand Generation in Protein Pockets},
+  author={Hejing Huo, Biao Zeng, Miaomiao Niu, Jinfeng Liu},
   journal={Under submission},
   year={2026},
   url={https://github.com/huohejing/MLIP-Diff}
