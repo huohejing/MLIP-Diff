@@ -257,10 +257,9 @@ original copyright notice is retained in `LICENSE`.
 ```
 @article{
   title={Interaction-Aware Machine Learning Interatomic Potential Guidance for Diffusion-Based 3D Ligand Generation in Protein Pockets},
-  author={Hejing Huo, Biao Zeng, Miaomiao Niu*, Jinfeng Liu*},
+  author={Hejing Huo, Biao Zeng, Miaomiao Niu, Jinfeng Liu},
   journal={Under submission},
   year={2026},
-  note={*Corresponding authors},
   url={https://github.com/huohejing/MLIP-Diff}
 }
 ```
